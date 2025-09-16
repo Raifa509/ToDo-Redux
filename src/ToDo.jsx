@@ -37,11 +37,21 @@ function ToDo() {
 
     const [taskText, setTaskText] = React.useState("")
     const [editingId, setEditingId] = React.useState(null)
+    const [activeTab,setActiveTab]=React.useState("all")
 
+    //progress bar
     const totalTasks = userTask.length;
     const completedTasks = userTask.filter(task => task.completed).length;
     const progressbar = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
 
+
+    //filter section
+    const filteredTasks = userTask.filter(task => {
+    if (activeTab === "all") return true;
+    if (activeTab === "completed") return task.completed;
+    if (activeTab === "pending") return !task.completed;
+    return true;
+});
 
     //handle add and update btn
     const handleAddOrUpdateTask = () => {
@@ -113,39 +123,49 @@ function ToDo() {
                        
                     </Box>
 
+                    {/* tab switching */}
+                    <ul className='flex sm:gap-[7rem] gap-6'>
+                        <li onClick={() => setActiveTab("all")} className={`cursor-pointer font-semibold  ${activeTab === "all" ? "text-blue-400" :"text-gray-600"}`}>All</li>
+                        <li onClick={() => setActiveTab("completed")} className={`cursor-pointer font-semibold   ${activeTab === "completed" ? "text-blue-400" :"text-gray-400"}`}>Completed</li>
+                         <li onClick={() => setActiveTab("pending")} className={`cursor-pointer font-semibold  ${activeTab === "pending" ? "text-blue-400" :"text-gray-400"}`}>Pending</li>
+                    </ul>
+
+
                     {/* task container */}
                     <div className="flex flex-col gap-3 w-full">
 
                         {/* duplicating */}
                         {
-                            userTask?.length > 0 ? (
-                                [...userTask]
-                                    .sort((a, b) => a.completed - b.completed)
-                                    .map(item => (
-                                        <div key={item.id} className='w-full text-left bg-gray-800 rounded-lg px-2 py-2 flex justify-between items-center hover:bg-gray-700'>
-                                            <div className='flex items-center gap-2'>
-                                                <Checkbox
-                                                    checked={item.completed}
-                                                    onChange={() => handleToggle(item.id)}
-                                                    sx={{ color: 'white' }}
-                                                />
-                                                <span className={`text-lg ${item.completed ? "line-through text-gray-400" : "text-white"}`}>
-                                                    {item.text}
-                                                </span>
-                                            </div>
-                                            <div className='flex items-center gap-2'>
-                                                <Tooltip title="Delete" placement="bottom-end">
-                                                    <DeleteIcon onClick={() => handleDeleteTask(item.id)} className='hover:text-red-500 cursor-pointer' />
-                                                </Tooltip>
-                                                <Tooltip title="Edit" placement="bottom-end">
-                                                    <EditIcon onClick={() => handleEditTask(item)} className='hover:text-blue-500 cursor-pointer me-4!' />
-                                                </Tooltip>
-                                            </div>
-                                        </div>
-                                    ))
-                            ) : (
-                                <p className=' text-lg'>Hurrayy...No tasks!!!</p>
-                            )}
+  filteredTasks.length > 0 ? (
+    [...filteredTasks]
+      .sort((a,b)=>a.completed - b.completed) // keep completed tasks at the bottom
+      .map(item => (
+        <div key={item.id} className='w-full text-left bg-gray-800 rounded-lg px-2 py-2 flex justify-between items-center hover:bg-gray-700'>
+          <div className='flex items-center gap-2'>
+            <Checkbox
+              checked={item.completed}
+              onChange={() => handleToggle(item.id)}
+              sx={{ color: 'white' }}
+            />
+            <span className={`text-lg ${item.completed ? "line-through text-gray-400" : "text-white"}`}>
+              {item.text}
+            </span>
+          </div>
+          <div className='flex items-center gap-2'>
+            <Tooltip title="Delete" placement="bottom-end">
+              <DeleteIcon onClick={() => handleDeleteTask(item.id)} className='hover:text-red-500 cursor-pointer' />
+            </Tooltip>
+            <Tooltip title="Edit" placement="bottom-end">
+              <EditIcon onClick={() => handleEditTask(item)} className='hover:text-blue-500 cursor-pointer me-4!' />
+            </Tooltip>
+          </div>
+        </div>
+      ))
+  ) : (
+    <p className='text-lg'>No tasks!!!</p>
+  )
+}
+
 
                     </div>
 
