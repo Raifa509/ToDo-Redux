@@ -125,7 +125,7 @@ function ToDo() {
 
                     {/* tab switching */}
                     <ul className='flex sm:gap-[7rem] gap-6'>
-                        <li onClick={() => setActiveTab("all")} className={`cursor-pointer font-semibold  ${activeTab === "all" ? "text-blue-400" :"text-gray-600"}`}>All</li>
+                        <li onClick={() => setActiveTab("all")} className={`cursor-pointer font-semibold  ${activeTab === "all" ? "text-blue-400" :"text-gray-400"}`}>All</li>
                         <li onClick={() => setActiveTab("completed")} className={`cursor-pointer font-semibold   ${activeTab === "completed" ? "text-blue-400" :"text-gray-400"}`}>Completed</li>
                          <li onClick={() => setActiveTab("pending")} className={`cursor-pointer font-semibold  ${activeTab === "pending" ? "text-blue-400" :"text-gray-400"}`}>Pending</li>
                     </ul>
