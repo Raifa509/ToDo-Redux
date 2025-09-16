@@ -8,37 +8,75 @@ import Checkbox from '@mui/material/Checkbox';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import Tooltip from '@mui/material/Tooltip';
+import { useDispatch, useSelector } from 'react-redux';
+import { addTask, removeTask, editTask, toggleTask } from './redux/slices/todoSlice';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
-// function LinearProgressWithLabel(props) {
-//     return (
-//         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-//             <Box sx={{ width: '100%', mr: 1 }}>
-//                 <LinearProgress variant="determinate" {...props} />
-//             </Box>
-//             <Box sx={{ minWidth: 35 }}>
-//                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-//                     {`${Math.round(props.value)}%`}
-//                 </Typography>
-//             </Box>
-//         </Box>
-//     );
-// }
 
-// LinearProgressWithLabel.propTypes = {
-//     /**
-//      * The value of the progress indicator for the determinate and buffer variants.
-//      * Value between 0 and 100.
-//      */
-//     value: PropTypes.number.isRequired,
-// };
-
+function LinearProgressWithLabel(props) {
+    return (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Box sx={{ width: '100%', mr: 1 }}>
+                <LinearProgress variant="determinate" {...props} />
+            </Box>
+            <Box sx={{ minWidth: 35 }}>
+                <Typography variant="body2" sx={{ color: 'white' }}>
+                    {`${Math.round(props.value)}%`}
+                </Typography>
+            </Box>
+        </Box>
+    );
+}
 
 const label = { inputProps: { 'aria-label': 'Checkbox demo' } };
 
 function ToDo() {
 
-    // const [progress, setProgress] = React.useState(10);
+    const userTask = useSelector(state => state.todoReducer.tasks)
+    const dispatch = useDispatch()
 
+    const [taskText, setTaskText] = React.useState("")
+    const [editingId, setEditingId] = React.useState(null)
+
+    const totalTasks = userTask.length;
+    const completedTasks = userTask.filter(task => task.completed).length;
+    const progressbar = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+
+
+    //handle add and update btn
+    const handleAddOrUpdateTask = () => {
+        if (taskText.trim() != "") {
+            if (editingId == null) {
+                //add new task
+                dispatch(addTask(taskText))
+            }
+            else {
+                //update task
+                dispatch(editTask({ id: editingId, text: taskText }))
+                setEditingId(null)
+            }
+            setTaskText("")
+
+        }
+    }
+
+
+
+    // handle delete btn
+    const handleDeleteTask = (id) => {
+        dispatch(removeTask(id))
+    }
+
+    //handle edit btn
+    const handleEditTask = (task) => {
+        setTaskText(task.text)
+        setEditingId(task.id)
+    }
+
+    //handle toggle btn
+    const handleToggle = (id) => {
+        dispatch(toggleTask(id))
+    }
 
 
 
@@ -55,39 +93,61 @@ function ToDo() {
 
                     {/* Input */}
                     <div className='flex sm:mt-5! mt-2! sm:gap-2 w-full'>
-                        <input
+                        <input onChange={(e) => setTaskText(e.target.value)} value={taskText}
                             type="text"
                             placeholder='What needs to be done?'
                             className='flex-grow border text-black rounded placeholder-gray-500 p-1! px-3! text-white focus:outline-2 focus:outline-offset-1 focus:outline-blue-500 '
                         />
-                        <button className='bg-green-700 py-1! px-4! rounded ms-3! cursor-pointer hover:bg-green-600 flex items-center justify-center gap-1'><AddIcon />Add</button>
+                        <button
+                            onClick={handleAddOrUpdateTask}
+                            className='bg-green-700 py-1! px-4! rounded ms-3! cursor-pointer hover:bg-green-600 flex items-center justify-center gap-1'
+                        >
+                            {editingId == null ? <AddIcon /> : <AddCircleOutlineIcon />}
+                            {editingId == null ? "Add" : "Update"}
+                        </button>
+
                     </div>
 
-                    {/* <Box sx={{ width: '100%' }}>
-                        <LinearProgressWithLabel value={progress} />
-                    </Box> */}
+                    <Box sx={{ width: '100%' }}>
+                        <LinearProgressWithLabel value={progressbar} />
+                       
+                    </Box>
 
                     {/* task container */}
                     <div className="flex flex-col gap-3 w-full">
-                        <div className='w-full text-left bg-gray-800 rounded-lg px-2 py-2 flex justify-between items-center'>
-                            <div className='flex items-center gap-2'>
-                                <Checkbox {...label} sx={{ color: 'white' }} />
-                                <span className='text-lg text-white'>Buy Groceries</span>
-                            </div>
-                            <div className='flex items-center gap-2'>
-                                <Tooltip title="Delete" placement="bottom-end">
-                                    <DeleteIcon className='hover:text-red-500 cursor-pointer' />
-                                </Tooltip>
-                                <Tooltip title="Edit" placement="bottom-end">
-                                    <EditIcon className='hover:text-blue-500 cursor-pointer me-4!' />
-                                </Tooltip>
-                            </div>
-                        </div>
-                        
+
+                        {/* duplicating */}
+                        {
+                            userTask?.length > 0 ? (
+                                [...userTask]
+                                    .sort((a, b) => a.completed - b.completed)
+                                    .map(item => (
+                                        <div key={item.id} className='w-full text-left bg-gray-800 rounded-lg px-2 py-2 flex justify-between items-center hover:bg-gray-700'>
+                                            <div className='flex items-center gap-2'>
+                                                <Checkbox
+                                                    checked={item.completed}
+                                                    onChange={() => handleToggle(item.id)}
+                                                    sx={{ color: 'white' }}
+                                                />
+                                                <span className={`text-lg ${item.completed ? "line-through text-gray-400" : "text-white"}`}>
+                                                    {item.text}
+                                                </span>
+                                            </div>
+                                            <div className='flex items-center gap-2'>
+                                                <Tooltip title="Delete" placement="bottom-end">
+                                                    <DeleteIcon onClick={() => handleDeleteTask(item.id)} className='hover:text-red-500 cursor-pointer' />
+                                                </Tooltip>
+                                                <Tooltip title="Edit" placement="bottom-end">
+                                                    <EditIcon onClick={() => handleEditTask(item)} className='hover:text-blue-500 cursor-pointer me-4!' />
+                                                </Tooltip>
+                                            </div>
+                                        </div>
+                                    ))
+                            ) : (
+                                <p className=' text-lg'>Hurrayy...No tasks!!!</p>
+                            )}
+
                     </div>
-
-
-
 
 
                 </div>
